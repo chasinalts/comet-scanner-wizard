@@ -1,4 +1,4 @@
-import { getLoginAttempts, incrementLoginAttempts } from './security';
+import { getLoginAttempts } from './security';
 
 type ValidationRule = {
   required?: boolean;

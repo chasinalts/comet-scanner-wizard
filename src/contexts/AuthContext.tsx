@@ -1,14 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import {
-  getLoginAttempts,
   incrementLoginAttempts,
   resetLoginAttempts,
   createSession,
   getSession,
   clearSession,
   initializeAdminAccount,
-  isAccountLocked,
-  validateSessionAccess
+  isAccountLocked
 } from '../utils/security';
 
 interface User {
@@ -44,7 +42,7 @@ const mockAuth = {
 
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     // In a real app, this would validate against a backend
     const storedUser = localStorage.getItem(`user_${username}`);
     if (storedUser) {
@@ -52,11 +50,11 @@ const mockAuth = {
       if (user.password === password) {
         // Reset login attempts on successful login
         resetLoginAttempts(username);
-        
+
         // Create new session
         const sessionId = createSession(username, user.isOwner);
         localStorage.setItem('current_session_id', sessionId);
-        
+
         const { password: _, ...userWithoutPassword } = user;
         return userWithoutPassword;
       }
@@ -70,7 +68,7 @@ const mockAuth = {
   createUser: async (username: string, password: string, isOwner: boolean): Promise<User> => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     // Check if user already exists
     if (localStorage.getItem(`user_${username}`)) {
       throw new Error('Username already exists');
@@ -149,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const user = await mockAuth.createUser(username, password, isOwner);
       setCurrentUser(user);
-      
+
       // Create session for new user
       const sessionId = createSession(username, isOwner);
       localStorage.setItem('current_session_id', sessionId);

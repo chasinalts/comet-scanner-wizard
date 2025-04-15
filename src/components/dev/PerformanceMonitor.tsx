@@ -1,4 +1,15 @@
 import React, { useState, useEffect } from 'react';
+
+// Add type declaration for Chrome's non-standard performance.memory
+declare global {
+  interface Performance {
+    memory?: {
+      jsHeapSizeLimit: number;
+      totalJSHeapSize: number;
+      usedJSHeapSize: number;
+    };
+  }
+}
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PerformanceMetric {

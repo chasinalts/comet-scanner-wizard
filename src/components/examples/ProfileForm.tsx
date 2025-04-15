@@ -1,5 +1,5 @@
-import { ChangeEvent, useState, useEffect, useRef, useCallback } from 'react';
-import { useFieldDependencies } from '../../hooks/useFieldDependencies';
+import { ChangeEvent, useState, useRef, useCallback } from 'react';
+// Removed unused import: useFieldDependencies
 import { useFormPersistence } from '../../hooks/useFormPersistence';
 import { useAbortController } from '../../hooks/useAbortController';
 import { FormProvider, useForm, useField } from '../../contexts/FormContext';
@@ -175,7 +175,7 @@ const ProfileFormContent: React.FC<ProfileFormContentProps> = ({
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showValidationSummary, setShowValidationSummary] = useState(false);
-  
+
   const formRefs = useRef<Record<keyof ProfileFormData, HTMLElement | null>>({
     username: null,
     email: null,

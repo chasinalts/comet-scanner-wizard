@@ -70,7 +70,7 @@ export const simulateApi = async <T>(
 };
 
 export const mockProfileApi = {
-  validateProfile: async (data: any, signal?: AbortSignal) => {
+  validateProfile: async (_data: any, signal?: AbortSignal) => {
     return simulateApi(
       { isValid: true },
       {

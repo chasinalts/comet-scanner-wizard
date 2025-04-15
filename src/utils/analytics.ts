@@ -1,6 +1,6 @@
 /**
  * Performance analytics utility
- * 
+ *
  * This module provides functions to measure and report performance metrics.
  */
 
@@ -28,13 +28,13 @@ interface CustomMetric {
 const config = {
   // Whether to enable analytics
   enabled: true,
-  
+
   // Whether to log metrics to console
   debug: process.env.NODE_ENV === 'development',
-  
+
   // Endpoint to send metrics to (if any)
   endpoint: '',
-  
+
   // Sample rate (0-1)
   sampleRate: 0.1,
 };
@@ -43,10 +43,10 @@ const config = {
 export const initAnalytics = (): void => {
   if (!config.enabled) return;
   if (!shouldSample()) return;
-  
+
   // Register performance observers
   registerPerformanceObservers();
-  
+
   // Collect metrics on page load
   window.addEventListener('load', () => {
     setTimeout(() => {
@@ -65,7 +65,7 @@ const shouldSample = (): boolean => {
 const registerPerformanceObservers = (): void => {
   // Skip if Performance API is not supported
   if (!window.PerformanceObserver) return;
-  
+
   try {
     // Observe Largest Contentful Paint
     const lcpObserver = new PerformanceObserver((entryList) => {
@@ -80,7 +80,7 @@ const registerPerformanceObservers = (): void => {
       }
     });
     lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
-    
+
     // Observe First Input Delay
     const fidObserver = new PerformanceObserver((entryList) => {
       const entries = entryList.getEntries();
@@ -88,6 +88,7 @@ const registerPerformanceObservers = (): void => {
         if (entry.name === 'first-input') {
           recordCustomMetric({
             name: 'first-input-delay',
+            // @ts-ignore - processingStart is a non-standard property on PerformanceEntry
             value: entry.processingStart - entry.startTime,
             category: 'interaction',
           });
@@ -95,17 +96,18 @@ const registerPerformanceObservers = (): void => {
       });
     });
     fidObserver.observe({ type: 'first-input', buffered: true });
-    
+
     // Observe Layout Shifts
     const clsObserver = new PerformanceObserver((entryList) => {
       let cumulativeLayoutShift = 0;
       entryList.getEntries().forEach((entry) => {
+        // @ts-ignore - hadRecentInput is a non-standard property on PerformanceEntry
         if (!entry.hadRecentInput) {
           // @ts-ignore - TS doesn't know about the value property on layout-shift entries
           cumulativeLayoutShift += entry.value;
         }
       });
-      
+
       recordCustomMetric({
         name: 'cumulative-layout-shift',
         value: cumulativeLayoutShift,
@@ -113,26 +115,26 @@ const registerPerformanceObservers = (): void => {
       });
     });
     clsObserver.observe({ type: 'layout-shift', buffered: true });
-    
+
     // Observe Navigation Timing
     const navigationObserver = new PerformanceObserver((entryList) => {
       const navigationEntry = entryList.getEntries()[0];
       if (navigationEntry) {
         // Record various navigation timing metrics
         const navTiming = navigationEntry as PerformanceNavigationTiming;
-        
+
         recordCustomMetric({
           name: 'time-to-first-byte',
           value: navTiming.responseStart - navTiming.requestStart,
           category: 'navigation',
         });
-        
+
         recordCustomMetric({
           name: 'dom-content-loaded',
           value: navTiming.domContentLoadedEventEnd - navTiming.fetchStart,
           category: 'navigation',
         });
-        
+
         recordCustomMetric({
           name: 'window-loaded',
           value: navTiming.loadEventEnd - navTiming.fetchStart,
@@ -141,7 +143,7 @@ const registerPerformanceObservers = (): void => {
       }
     });
     navigationObserver.observe({ type: 'navigation', buffered: true });
-    
+
   } catch (error) {
     console.error('Error setting up performance observers:', error);
   }
@@ -153,9 +155,9 @@ const customMetrics: Record<string, number> = {};
 // Record a custom metric
 export const recordCustomMetric = (metric: CustomMetric): void => {
   if (!config.enabled) return;
-  
+
   customMetrics[metric.name] = metric.value;
-  
+
   if (config.debug) {
     console.log(`[Analytics] Recorded metric: ${metric.name} = ${metric.value}`);
   }
@@ -164,9 +166,9 @@ export const recordCustomMetric = (metric: CustomMetric): void => {
 // Start timing a custom operation
 export const startTiming = (name: string): () => void => {
   if (!config.enabled) return () => {};
-  
+
   const startTime = performance.now();
-  
+
   return () => {
     const duration = performance.now() - startTime;
     recordCustomMetric({
@@ -180,7 +182,7 @@ export const startTiming = (name: string): () => void => {
 // Collect all metrics
 const collectMetrics = (): PerformanceMetrics => {
   const metrics: PerformanceMetrics = { ...customMetrics };
-  
+
   // Collect standard metrics if available
   if (window.performance) {
     // Paint metrics
@@ -192,7 +194,7 @@ const collectMetrics = (): PerformanceMetrics => {
         metrics.firstContentfulPaint = entry.startTime;
       }
     });
-    
+
     // Navigation timing
     const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
     if (navEntry) {
@@ -201,7 +203,7 @@ const collectMetrics = (): PerformanceMetrics => {
       metrics.windowLoaded = navEntry.loadEventEnd - navEntry.fetchStart;
     }
   }
-  
+
   return metrics;
 };
 
@@ -210,7 +212,7 @@ const reportMetrics = (metrics: PerformanceMetrics): void => {
   if (config.debug) {
     console.log('[Analytics] Performance Metrics:', metrics);
   }
-  
+
   // Send metrics to server if endpoint is configured
   if (config.endpoint) {
     try {

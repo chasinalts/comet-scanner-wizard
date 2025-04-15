@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useWizard } from '../contexts/WizardContext';
+// import { useWizard } from '../contexts/WizardContext'; // Unused import
 import StepOne from './wizard/StepOne';
 
 const pageTransition = {

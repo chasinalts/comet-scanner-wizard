@@ -1,8 +1,8 @@
-import React, { useState, useCallback, ChangeEvent, FormEvent, JSX } from 'react';
+import React, { useState, useCallback, ChangeEvent, JSX } from 'react';
 import type { ReactNode } from 'react';
 import { motion, Reorder, AnimatePresence } from 'framer-motion';
 import { useWizard } from '../../contexts/WizardContext';
-import type { Question, QuestionOption } from '../../types/questions';
+import type { Question } from '../../types/questions';
 import type { Section } from '../../hooks/useSections';
 
 // Define specific question types for type casting

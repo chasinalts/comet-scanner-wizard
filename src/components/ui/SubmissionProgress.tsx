@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { ReactNode } from 'react';
 
 export interface SubmissionStep {
   id: string;
@@ -76,7 +77,7 @@ const SubmissionProgress = ({ steps, onClose, showCloseButton = true, footer }: 
               </div>
               <div className="ml-3 w-0 flex-1">
                 <div className="space-y-4">
-                  {steps.map((step, index) => (
+                  {steps.map((step) => (
                     <div key={step.id} className="flex items-center">
                       <div
                         className={`flex-shrink-0 h-2 w-2 rounded-full ${

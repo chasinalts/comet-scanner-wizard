@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Modal from '../components/ui/Modal';
-import { useAdminContent, type ImageContent } from '../hooks/useAdminContent';
+import { useAdminContent } from '../hooks/useAdminContent';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeToggle from '../components/ui/ThemeToggle';
@@ -10,8 +10,8 @@ import { useWizard } from '../contexts/WizardContext';
 import { useQuestions } from '../hooks/useQuestions';
 import { useSections } from '../hooks/useSections';
 import type { Question, QuestionOption } from '../types/questions';
-import { TextField, TextArea, CheckboxField, SelectField } from '../components/ui/FormField'; // Assuming FormField exports these
-import Button from '../components/ui/Button';
+import { TextField, CheckboxField } from '../components/ui/FormField'; // Assuming FormField exports these
+// import Button from '../components/ui/Button'; // Unused import
 
 const containerVariants = {
   initial: { opacity: 0, y: 20 },
@@ -28,8 +28,8 @@ const itemVariants = {
 };
 
 const ScannerWizard = () => {
-  const { getBannerImage, getScannerImages } = useAdminContent();
-  const { currentUser } = useAuth();
+  const { getBannerImage } = useAdminContent();
+  const { } = useAuth(); // Auth context is used but currentUser is not needed
   const { theme } = useTheme();
   const { state: wizardState, dispatch: wizardDispatch } = useWizard();
   const { questions } = useQuestions(); // Load questions managed by admin
@@ -48,7 +48,7 @@ const ScannerWizard = () => {
 
   // Get banner and scanner images from admin content
   const bannerContent = getBannerImage();
-  const scannerImages = getScannerImages();
+  // const scannerImages = getScannerImages(); // Unused variable
 
   const handleAnswerChange = (questionId: string, value: any) => {
     wizardDispatch({ type: 'SET_ANSWER', payload: { questionId, value } });
@@ -79,10 +79,10 @@ const ScannerWizard = () => {
                 <label
                   key={option.id}
                   className={`
-                    flex flex-col items-center p-4 border rounded-lg cursor-pointer 
+                    flex flex-col items-center p-4 border rounded-lg cursor-pointer
                     transition-all duration-150 ease-in-out
-                    ${(answer === option.value) 
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-2 ring-blue-500' 
+                    ${(answer === option.value)
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-2 ring-blue-500'
                       : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }
                   `}
@@ -157,7 +157,7 @@ const ScannerWizard = () => {
                     src={bannerContent.src}
                     alt="COMET Scanner Banner"
                     className="absolute top-0 left-0 w-full h-full object-contain transition-transform duration-300"
-                    style={{ 
+                    style={{
                       transform: `scale(${bannerContent.scale || 1})`,
                       transformOrigin: 'center center'
                     }}

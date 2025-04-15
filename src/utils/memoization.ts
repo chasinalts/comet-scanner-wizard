@@ -24,19 +24,19 @@ class LRUCache<T> {
 
   get(key: string): T | undefined {
     const item = this.cache.get(key);
-    
+
     if (!item) return undefined;
-    
+
     // Check if item has expired
     if (item.expiry && Date.now() > item.expiry) {
       this.cache.delete(key);
       return undefined;
     }
-    
+
     // Move to the end to mark as recently used
     this.cache.delete(key);
     this.cache.set(key, item);
-    
+
     return item.value;
   }
 
@@ -44,9 +44,11 @@ class LRUCache<T> {
     // If cache is full, remove the least recently used item (first item)
     if (this.cache.size >= this.maxSize) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
     }
-    
+
     const expiry = ttl ? Date.now() + ttl : null;
     this.cache.set(key, { value, expiry });
   }
@@ -72,22 +74,22 @@ export function memoize<T extends (...args: any[]) => any>(
   const memoized = ((...args: Parameters<T>): ReturnType<T> => {
     // Create a cache key from the function arguments
     const key = JSON.stringify(args);
-    
+
     // Check if result is in cache
     const cachedResult = cache.get(key);
     if (cachedResult !== undefined) {
       return cachedResult;
     }
-    
+
     // Calculate result and store in cache
     const result = fn(...args);
-    
+
     // Handle promises
     if (result instanceof Promise) {
       // For promises, we store the promise in the cache
       // and update it with the resolved value when it completes
       cache.set(key, result as ReturnType<T>, ttl);
-      
+
       return result.then((value) => {
         cache.set(key, value as ReturnType<T>, ttl);
         return value;
@@ -97,7 +99,7 @@ export function memoize<T extends (...args: any[]) => any>(
         throw error;
       }) as ReturnType<T>;
     }
-    
+
     // For non-promises, just store the result
     cache.set(key, result, ttl);
     return result;
@@ -123,13 +125,13 @@ export function debounce<T extends (...args: any[]) => any>(
   wait: number
 ): (...args: Parameters<T>) => void {
   let timeout: number | undefined;
-  
+
   return function(this: any, ...args: Parameters<T>): void {
     const later = () => {
       timeout = undefined;
       fn.apply(this, args);
     };
-    
+
     clearTimeout(timeout);
     timeout = window.setTimeout(later, wait);
   };
@@ -148,15 +150,15 @@ export function throttle<T extends (...args: any[]) => any>(
 ): (...args: Parameters<T>) => ReturnType<T> | undefined {
   let lastCall = 0;
   let result: ReturnType<T> | undefined;
-  
+
   return function(this: any, ...args: Parameters<T>): ReturnType<T> | undefined {
     const now = Date.now();
-    
+
     if (now - lastCall >= wait) {
       lastCall = now;
       result = fn.apply(this, args);
     }
-    
+
     return result;
   };
 }
