@@ -1,10 +1,10 @@
 [build]
   publish = "dist"
-  command = "bash netlify-build.sh"
+  command = "bash netlify-build.sh || npm run simple-build || bash direct-build.sh"
 
 # Production context: all deploys from the main branch
 [context.production]
-  command = "bash netlify-build.sh"
+  command = "bash netlify-build.sh || npm run simple-build || bash direct-build.sh"
 
 # Redirects and headers are GLOBAL for all builds
 [[redirects]]
