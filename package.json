@@ -14,7 +14,8 @@
     "analyze-bundle": "vite build --mode analyze",
     "deploy:netlify": "node scripts/deploy-netlify.js",
     "deploy:github": "node scripts/deploy-github-pages.js",
-    "deploy:aws": "node scripts/deploy-aws-s3.js"
+    "deploy:aws": "node scripts/deploy-aws-s3.js",
+    "netlify:build": "node scripts/netlify-build.js"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",

@@ -4,8 +4,8 @@ import react from '@vitejs/plugin-react'
 // import imagemin from 'vite-plugin-imagemin'
 
 export default defineConfig({
-  // Base path for GitHub Pages deployment
-  base: '/comet-scanner-wizard/',
+  // Base path - comment this out for Netlify deployment
+  // base: '/comet-scanner-wizard/',
   plugins: [
     react(),
     // Uncomment after installing the plugin
