@@ -5,18 +5,26 @@
  * It provides more control over the build process and helps troubleshoot issues.
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get the current file's directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load Netlify configuration
-let netlifyConfig;
+let netlifyConfig = {};
 try {
-  netlifyConfig = require('../netlify.config.js');
-  console.log('Loaded Netlify configuration');
+  const configPath = path.join(__dirname, '..', 'netlify.config.js');
+  if (fs.existsSync(configPath)) {
+    const { default: config } = await import('../netlify.config.js');
+    netlifyConfig = config;
+    console.log('Loaded Netlify configuration');
+  }
 } catch (error) {
   console.warn('Failed to load Netlify configuration:', error.message);
-  netlifyConfig = {};
 }
 
 // Configuration
@@ -106,7 +114,7 @@ function logEnvironmentInfo() {
 }
 
 // Main function
-async function main() {
+const main = async () => {
   console.log('🚀 Starting Netlify build script...');
 
   // Log environment information
@@ -136,7 +144,7 @@ async function main() {
   }
 
   console.log('\n✅ Build completed successfully!');
-}
+};
 
 // Run the script
 main().catch(error => {

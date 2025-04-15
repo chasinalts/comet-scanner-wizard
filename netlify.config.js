@@ -1,33 +1,33 @@
 /**
  * Netlify configuration
- * 
+ *
  * This file contains configuration specific to Netlify deployments.
  */
 
-module.exports = {
+export default {
   // Build settings
   build: {
     // Base directory
     base: '.',
-    
+
     // Build command
     command: 'npm run build',
-    
+
     // Output directory
     outputDir: 'dist',
-    
+
     // Environment variables
     env: {
       NODE_ENV: 'production',
       VITE_APP_ENV: 'production'
     }
   },
-  
+
   // Deployment settings
   deploy: {
     // Production branch
     productionBranch: 'main',
-    
+
     // Headers
     headers: [
       {
@@ -52,7 +52,7 @@ module.exports = {
         }
       }
     ],
-    
+
     // Redirects
     redirects: [
       {
