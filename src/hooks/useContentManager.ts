@@ -77,7 +77,7 @@ export const useContentManager = (): ContentManagerHook => {
     console.log(`Starting upload of ${type} image:`, { fileName: file.name, fileSize: file.size, fileType: file.type });
     return new Promise((resolve, reject) => {
       try {
-        handleImageUpload(file, (imageUrl: string, imagePreview: string) => {
+        handleImageUpload(file, (imageUrl: string, _imagePreview: string) => {
           console.log(`Adding ${type} content to storage`);
           const id = addContent({
             type,

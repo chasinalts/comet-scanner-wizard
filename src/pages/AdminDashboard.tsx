@@ -10,7 +10,7 @@ import { handleImageUpload } from '../utils/imageHandlers';
 import { useQuestions } from '../hooks/useQuestions';
 import { useSections } from '../hooks/useSections';
 import { useContentManager } from '../hooks/useContentManager';
-import { useAdminContent, type ImageContent } from '../hooks/useAdminContent';
+import { useAdminContent } from '../hooks/useAdminContent';
 import type { Question, QuestionOption } from '../types/questions';
 import type { Section } from '../hooks/useSections';
 import TrashIcon from '../components/ui/TrashIcon';
@@ -39,9 +39,10 @@ export default function AdminDashboard() {
     reorderSections
   } = useSections();
   const {
-    contents,
-    addContent,
-    updateContent,
+    // Unused variables commented out to fix TypeScript errors
+    // contents,
+    // addContent,
+    // updateContent,
     deleteContent,
     uploadImage,
     updateImageScale,
@@ -50,8 +51,9 @@ export default function AdminDashboard() {
   const { getBannerImage, getScannerImages } = useAdminContent();
 
   const [uploadingImage, setUploadingImage] = useState<UploadingState | null>(null);
-  const [bannerPreviewFile, setBannerPreviewFile] = useState<File | null>(null);
-  const [scannerPreviewFile, setScannerPreviewFile] = useState<File | null>(null);
+  // Commented out unused state variables to fix TypeScript errors
+  // const [bannerPreviewFile, setBannerPreviewFile] = useState<File | null>(null);
+  // const [scannerPreviewFile, setScannerPreviewFile] = useState<File | null>(null);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
 
   const handleAddOption = (questionId: string) => {
@@ -182,7 +184,7 @@ export default function AdminDashboard() {
 
     try {
       setUploadingImage({ contentType: 'banner' });
-      setBannerPreviewFile(file);
+      // setBannerPreviewFile(file); // Commented out to fix TypeScript errors
 
       const id = await uploadImage(file, 'banner', 'Banner Image');
       setSelectedImageId(id);
@@ -204,7 +206,7 @@ export default function AdminDashboard() {
 
     try {
       setUploadingImage({ contentType: 'scanner' });
-      setScannerPreviewFile(file);
+      // setScannerPreviewFile(file); // Commented out to fix TypeScript errors
 
       const id = await uploadImage(file, 'scanner', 'Scanner Variation');
       setSelectedImageId(id);
