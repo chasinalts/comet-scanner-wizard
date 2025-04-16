@@ -55,6 +55,8 @@ export default function AdminDashboard() {
   // const [bannerPreviewFile, setBannerPreviewFile] = useState<File | null>(null);
   // const [scannerPreviewFile, setScannerPreviewFile] = useState<File | null>(null);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [scannerImagesPage, setScannerImagesPage] = useState<number>(1);
+  const IMAGES_PER_PAGE = 9; // Show 9 images per page (3x3 grid)
 
   const handleAddOption = (questionId: string) => {
     const currentQuestion = questions.find(q => q.id === questionId);
@@ -250,6 +252,24 @@ export default function AdminDashboard() {
     showToast('success', 'Image deleted successfully');
   };
 
+  // Get paginated scanner images
+  const getPaginatedScannerImages = () => {
+    const allImages = getScannerImages();
+    const startIndex = (scannerImagesPage - 1) * IMAGES_PER_PAGE;
+    return allImages.slice(startIndex, startIndex + IMAGES_PER_PAGE);
+  };
+
+  // Calculate total pages
+  const getTotalScannerPages = () => {
+    const totalImages = getScannerImages().length;
+    return Math.ceil(totalImages / IMAGES_PER_PAGE);
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    setScannerImagesPage(newPage);
+  };
+
   if (!currentUser?.isOwner) {
     return <div className="p-8 text-center text-gray-900 dark:text-white">You don't have permission to access this page.</div>;
   }
@@ -347,12 +367,17 @@ export default function AdminDashboard() {
 
         {/* Scanner Variations */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-          <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-4">Scanner Variations</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white">Scanner Variations</h3>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {getScannerImages().length} images
+            </div>
+          </div>
           <div className="space-y-6">
             {/* Scanner Images Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Existing Scanner Images */}
-              {getScannerImages().map((image) => (
+              {getPaginatedScannerImages().map((image) => (
                 <div key={image.id} className="group border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-all duration-200">
                   <div className="p-4 space-y-4">
                     <div className="relative aspect-video bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
@@ -402,7 +427,7 @@ export default function AdminDashboard() {
               ))}
 
               {/* Upload New Scanner Image - Always show this */}
-              <div className="border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm p-4">
+              <div className="border dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
                 <DragDropUpload
                   onFileSelect={handleScannerImageUpload}
                   accept="image/*"
@@ -413,6 +438,39 @@ export default function AdminDashboard() {
                 />
               </div>
             </div>
+
+            {/* Pagination Controls */}
+            {getTotalScannerPages() > 1 && (
+              <div className="flex justify-center mt-6">
+                <nav className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handlePageChange(Math.max(1, scannerImagesPage - 1))}
+                    disabled={scannerImagesPage === 1}
+                    className={`px-3 py-1 rounded ${scannerImagesPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}`}
+                  >
+                    Previous
+                  </button>
+
+                  {Array.from({ length: getTotalScannerPages() }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`w-8 h-8 rounded flex items-center justify-center ${page === scannerImagesPage ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => handlePageChange(Math.min(getTotalScannerPages(), scannerImagesPage + 1))}
+                    disabled={scannerImagesPage === getTotalScannerPages()}
+                    className={`px-3 py-1 rounded ${scannerImagesPage === getTotalScannerPages() ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}`}
+                  >
+                    Next
+                  </button>
+                </nav>
+              </div>
+            )}
           </div>
         </div>
       </section>

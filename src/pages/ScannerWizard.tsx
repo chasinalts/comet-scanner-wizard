@@ -48,12 +48,36 @@ const ScannerWizard = () => {
 
   // Get banner and scanner images from admin content
   const bannerContent = getBannerImage();
-  const scannerImages = getScannerImages();
 
-  // Debug: Log scanner images
+  // Get scanner images with error handling
+  const [scannerImages, setScannerImages] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const imagesPerPage = 6; // Show 6 images per page (2x3 grid)
+
   useEffect(() => {
-    console.log('Scanner Images:', scannerImages);
-  }, [scannerImages]);
+    try {
+      const images = getScannerImages();
+      setScannerImages(images);
+      console.log('Scanner Images loaded:', images.length);
+    } catch (error) {
+      console.error('Error loading scanner images:', error);
+      setScannerImages([]);
+    }
+  }, [getScannerImages]);
+
+  // Get current page of images
+  const getCurrentPageImages = () => {
+    const startIndex = (currentPage - 1) * imagesPerPage;
+    return scannerImages.slice(startIndex, startIndex + imagesPerPage);
+  };
+
+  // Calculate total pages
+  const totalPages = Math.ceil(scannerImages.length / imagesPerPage);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleAnswerChange = (questionId: string, value: any) => {
     wizardDispatch({ type: 'SET_ANSWER', payload: { questionId, value } });
@@ -188,7 +212,7 @@ const ScannerWizard = () => {
                 Scanner Variations
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {scannerImages.map((image) => (
+                {getCurrentPageImages().map((image) => (
                   <div
                     key={image.id}
                     className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
@@ -215,6 +239,39 @@ const ScannerWizard = () => {
                   </div>
                 ))}
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-8">
+                  <nav className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}`}
+                    >
+                      Previous
+                    </button>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`w-8 h-8 rounded flex items-center justify-center ${page === currentPage ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}`}
+                    >
+                      Next
+                    </button>
+                  </nav>
+                </div>
+              )}
             </motion.div>
           )}
 
