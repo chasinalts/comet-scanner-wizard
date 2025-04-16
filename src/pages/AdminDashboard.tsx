@@ -9,8 +9,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { handleImageUpload, cleanupImageUrl } from '../utils/imageHandlers';
 import { useQuestions } from '../hooks/useQuestions';
 import { useSections } from '../hooks/useSections';
-import { useFirebaseImage } from '../hooks/useFirebaseImage';
-import { useFirebaseContent } from '../hooks/useFirebaseContent';
+import { useSupabaseImage } from '../hooks/useSupabaseImage';
+import { useSupabaseContent } from '../hooks/useSupabaseContent';
 
 // Types
 interface ContentUploadState {
@@ -43,7 +43,7 @@ const AdminDashboardContent = () => {
   const { currentUser } = useAuth();
   const { showToast } = useToast();
   const { theme } = useTheme();
-  const { addImage, getImage, deleteImage, isLoading: imageLoading } = useFirebaseImage();
+  const { addImage, getImage, deleteImage, isLoading: imageLoading } = useSupabaseImage();
   const {
     contents,
     setContents,
@@ -51,7 +51,7 @@ const AdminDashboardContent = () => {
     deleteContent,
     saveAllContents,
     isLoading: contentLoading
-  } = useFirebaseContent();
+  } = useSupabaseContent();
 
   const [contentUploading, setContentUploading] = useState<ContentUploadState | null>(null);
 
@@ -74,7 +74,7 @@ const AdminDashboardContent = () => {
             console.log('[Image Load] Banner image loaded successfully');
             setBannerImageData(data);
           } else {
-            console.warn('[Image Load] Banner image not found in Firebase');
+            console.warn('[Image Load] Banner image not found in Supabase');
           }
         })
         .catch(error => {
@@ -120,9 +120,9 @@ const AdminDashboardContent = () => {
           const imageId = `${type}-${Date.now()}`;
 
           try {
-            // Store image data in Firebase
+            // Store image data in Supabase
             await addImage(imageId, imageUrl, type);
-            console.log('[Upload] Image stored in Firebase:', imageId);
+            console.log('[Upload] Image stored in Supabase:', imageId);
 
             // Create new content metadata
             const newContent: ContentMetadata = {
@@ -144,7 +144,7 @@ const AdminDashboardContent = () => {
               }
             }
 
-            // Save the new content to Firebase
+            // Save the new content to Supabase
             await saveContent(newContent);
 
             // Load the new image data
@@ -180,7 +180,7 @@ const AdminDashboardContent = () => {
 
       if (content?.imageId) {
         await deleteImage(content.imageId);
-        console.log('[Delete] Image deleted from Firebase:', content.imageId);
+        console.log('[Delete] Image deleted from Supabase:', content.imageId);
 
         // Clear image data from state
         if (content.type === 'banner') {
@@ -193,7 +193,7 @@ const AdminDashboardContent = () => {
         }
       }
 
-      // Delete content from Firebase
+      // Delete content from Supabase
       await deleteContent(id);
       showToast('success', 'Content deleted successfully');
     } catch (error) {

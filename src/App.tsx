@@ -4,7 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { WizardProvider } from './contexts/WizardContext';
 import { ToastProvider } from './components/ui/Toast';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { FirebaseProvider } from './components/FirebaseProvider';
+import { SupabaseProvider } from './components/SupabaseProvider';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/layout/Layout';
 import SuspenseFallback from './components/ui/SuspenseFallback';
@@ -19,7 +19,7 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 function App() {
   return (
     <Router>
-      <FirebaseProvider>
+      <SupabaseProvider>
         <AuthProvider>
           <WizardProvider>
             <ThemeProvider>
@@ -93,7 +93,7 @@ function App() {
           </ThemeProvider>
         </WizardProvider>
       </AuthProvider>
-    </FirebaseProvider>
+    </SupabaseProvider>
   </Router>
   );
 }
