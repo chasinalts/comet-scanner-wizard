@@ -2,12 +2,21 @@ export const handleImageUpload = (
   file: File,
   onSuccess: (imageUrl: string, imagePreview: string) => void
 ) => {
+  // Create a blob URL for preview (this is more efficient for display)
   const imagePreview = URL.createObjectURL(file);
+
+  // Use FileReader to get a data URL (this is more reliable for storage)
   const reader = new FileReader();
 
   reader.onloadend = () => {
     const imageUrl = reader.result as string;
-    console.log('Image uploaded:', { file, imageUrl: imageUrl.substring(0, 50) + '...', imagePreview });
+    console.log('Image uploaded:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      imageUrlPrefix: imageUrl.substring(0, 30) + '...',
+      imagePreview
+    });
     onSuccess(imageUrl, imagePreview);
   };
 

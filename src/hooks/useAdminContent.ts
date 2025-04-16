@@ -72,11 +72,21 @@ export const useAdminContent = (): AdminContentHook => {
     if (banners.length === 0) return null;
 
     const banner = banners[banners.length - 1];
+
+    // Debug: Log the banner image being retrieved
+    console.log('Retrieved banner image:', {
+      id: banner.id,
+      imageUrl: banner.imageUrl ? banner.imageUrl.substring(0, 30) + '...' : 'none',
+      title: banner.title,
+      scale: banner.scale,
+      displayText: banner.displayText
+    });
+
     return {
       id: banner.id,
       src: banner.imageUrl || '',
       alt: banner.title,
-      scale: banner.scale,
+      scale: banner.scale || 1,
       displayText: banner.displayText
     };
   }, [contents, filterBanners]);
@@ -93,22 +103,49 @@ export const useAdminContent = (): AdminContentHook => {
   );
 
   const transformToImageContent = useMemo(() =>
-    memoize((items: ContentItem[]): ImageContent[] =>
-      items.map(item => ({
-        id: item.id,
-        src: item.imageUrl || '',
-        alt: item.title,
-        scale: item.scale,
-        displayText: item.displayText
-      }))
-    ),
+    memoize((items: ContentItem[]): ImageContent[] => {
+      const result = items.map(item => {
+        // Ensure we have valid values for all properties
+        const imageContent = {
+          id: item.id,
+          src: item.imageUrl || '',
+          alt: item.title || 'Image',
+          scale: item.scale || 1,
+          displayText: item.displayText || ''
+        };
+
+        // Debug: Log each transformed image
+        console.log(`Transformed image ${item.id}:`, {
+          src: imageContent.src ? imageContent.src.substring(0, 30) + '...' : 'none',
+          scale: imageContent.scale
+        });
+
+        return imageContent;
+      });
+
+      return result;
+    }),
     []
   );
 
   const getScannerImages = useCallback((): ImageContent[] => {
     const filtered = filterScanners(contents);
     const sorted = sortByUpdatedAt(filtered);
-    return transformToImageContent(sorted);
+
+    // Debug: Log the scanner images being retrieved
+    console.log('Retrieved scanner images:', filtered.length);
+    if (filtered.length > 0) {
+      console.log('First scanner image:', {
+        id: filtered[0].id,
+        imageUrl: filtered[0].imageUrl ? filtered[0].imageUrl.substring(0, 30) + '...' : 'none',
+        title: filtered[0].title,
+        scale: filtered[0].scale,
+        displayText: filtered[0].displayText
+      });
+    }
+
+    const result = transformToImageContent(sorted);
+    return result;
   }, [contents, filterScanners, sortByUpdatedAt, transformToImageContent]);
 
   // Memoize the filter and transform functions for templates

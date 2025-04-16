@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Modal from '../components/ui/Modal';
-import { useAdminContent } from '../hooks/useAdminContent';
+import { useAdminContent, type ContentItem } from '../hooks/useAdminContent';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeToggle from '../components/ui/ThemeToggle';
@@ -9,8 +9,10 @@ import LiveCodePreview from '../components/LiveCodePreview';
 import { useWizard } from '../contexts/WizardContext';
 import { useQuestions } from '../hooks/useQuestions';
 import { useSections } from '../hooks/useSections';
+import { useImageBridge } from '../hooks/useImageBridge';
 import type { Question, QuestionOption } from '../types/questions';
-import { TextField, CheckboxField } from '../components/ui/FormField'; // Assuming FormField exports these
+import { TextField, CheckboxField } from '../components/ui/FormField';
+import ImageDisplay from '../components/ui/ImageDisplay';
 // import Button from '../components/ui/Button'; // Unused import
 
 const containerVariants = {
@@ -29,6 +31,7 @@ const itemVariants = {
 
 const ScannerWizard = () => {
   const { getBannerImage, getScannerImages } = useAdminContent();
+  const { imageCache, loading: imagesLoading } = useImageBridge();
   const { } = useAuth(); // Auth context is used but currentUser is not needed
   const { theme } = useTheme();
   const { state: wizardState, dispatch: wizardDispatch } = useWizard();
@@ -47,23 +50,70 @@ const ScannerWizard = () => {
   }, [sections, wizardDispatch]);
 
   // Get banner and scanner images from admin content
-  const bannerContent = getBannerImage();
-
-  // Get scanner images with error handling
+  const [bannerContent, setBannerContent] = useState<any>(null);
+  const [bannerImageData, setBannerImageData] = useState<string | null>(null);
   const [scannerImages, setScannerImages] = useState<any[]>([]);
+  const [scannerImageDataMap, setScannerImageDataMap] = useState<Record<string, string>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const imagesPerPage = 6; // Show 6 images per page (2x3 grid)
 
+  // Load banner and scanner images
   useEffect(() => {
     try {
+      // Get banner image metadata
+      const banner = getBannerImage();
+      setBannerContent(banner);
+
+      // Get scanner images metadata
       const images = getScannerImages();
       setScannerImages(images);
-      console.log('Scanner Images loaded:', images.length);
+
+      console.log('Content metadata loaded:', {
+        bannerFound: !!banner,
+        scannerImagesCount: images.length
+      });
     } catch (error) {
-      console.error('Error loading scanner images:', error);
+      console.error('Error loading content metadata:', error);
+      setBannerContent(null);
       setScannerImages([]);
     }
-  }, [getScannerImages]);
+  }, [getBannerImage, getScannerImages]);
+
+  // Load image data from IndexedDB via the bridge
+  useEffect(() => {
+    if (!imagesLoading && Object.keys(imageCache).length > 0) {
+      console.log('Image cache loaded:', Object.keys(imageCache).length, 'images');
+
+      // Find banner image data
+      if (bannerContent?.id) {
+        // In the real app, we'd use the imageId from the content metadata
+        // For this example, we'll try to find the banner image in the cache
+        const bannerImageId = Object.keys(imageCache).find(key => key.startsWith('banner-'));
+        if (bannerImageId) {
+          setBannerImageData(imageCache[bannerImageId]);
+          console.log('Banner image data found:', bannerImageId);
+        }
+      }
+
+      // Find scanner image data
+      if (scannerImages.length > 0) {
+        const newScannerImageDataMap: Record<string, string> = {};
+
+        // In the real app, we'd use the imageId from each scanner image
+        // For this example, we'll try to find scanner images in the cache
+        const scannerImageIds = Object.keys(imageCache).filter(key => key.startsWith('scanner-'));
+
+        scannerImageIds.forEach((imageId, index) => {
+          if (index < scannerImages.length) {
+            newScannerImageDataMap[scannerImages[index].id] = imageCache[imageId];
+          }
+        });
+
+        setScannerImageDataMap(newScannerImageDataMap);
+        console.log('Scanner image data found:', Object.keys(newScannerImageDataMap).length, 'images');
+      }
+    }
+  }, [imageCache, imagesLoading, bannerContent, scannerImages]);
 
   // Get current page of images
   const getCurrentPageImages = () => {
@@ -177,17 +227,19 @@ const ScannerWizard = () => {
             variants={itemVariants}
             className="relative w-full mb-12 bg-gray-100 dark:bg-gray-800"
           >
-            {bannerContent ? (
+            {imagesLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 bg-opacity-75 dark:bg-opacity-75 z-10">
+                <div className="text-blue-600 dark:text-blue-400 text-xl font-medium">Loading images...</div>
+              </div>
+            )}
+            {bannerImageData ? (
               <div className="relative w-full flex items-center justify-center overflow-hidden">
                 <div className="w-full" style={{ paddingBottom: '42.85%' }}>
-                  <img
-                    src={bannerContent.src}
+                  <ImageDisplay
+                    src={bannerImageData}
                     alt="COMET Scanner Banner"
+                    scale={bannerContent?.scale || 1}
                     className="absolute top-0 left-0 w-full h-full object-contain transition-transform duration-300"
-                    style={{
-                      transform: `scale(${bannerContent.scale || 1})`,
-                      transformOrigin: 'center center'
-                    }}
                   />
                 </div>
               </div>
@@ -203,7 +255,7 @@ const ScannerWizard = () => {
           </motion.div>
 
           {/* Scanner Variations Gallery */}
-          {scannerImages.length > 0 && (
+          {Object.keys(scannerImageDataMap).length > 0 && (
             <motion.div
               variants={itemVariants}
               className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16"
@@ -217,16 +269,16 @@ const ScannerWizard = () => {
                     key={image.id}
                     className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
                     onClick={() => {
-                      setSelectedImage(image.src);
+                      setSelectedImage(scannerImageDataMap[image.id] || '');
                       setSelectedTitle(image.displayText || 'Scanner Variation');
                     }}
                   >
                     <div className="aspect-video bg-gray-100 dark:bg-gray-700 relative overflow-hidden">
-                      <img
-                        src={image.src}
+                      <ImageDisplay
+                        src={scannerImageDataMap[image.id] || ''}
                         alt={image.alt}
+                        scale={image.scale || 1}
                         className="w-full h-full object-contain"
-                        style={{ transform: `scale(${image.scale || 1})` }}
                       />
                     </div>
                     {image.displayText && (
@@ -316,8 +368,8 @@ const ScannerWizard = () => {
           >
             <div className="relative">
               <div className="flex justify-center items-center bg-white dark:bg-gray-800 rounded-lg p-4">
-                <img
-                  src={selectedImage}
+                <ImageDisplay
+                  src={selectedImage || ''}
                   alt={selectedTitle}
                   className="max-w-full max-h-[80vh] object-contain"
                 />

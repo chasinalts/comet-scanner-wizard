@@ -79,14 +79,21 @@ export const useContentManager = (): ContentManagerHook => {
       try {
         handleImageUpload(file, (imageUrl: string, _imagePreview: string) => {
           console.log(`Adding ${type} content to storage`);
+
+          // Store the image data URL in localStorage
           const id = addContent({
             type,
             title,
             content: '',
-            imageUrl,
-            scale: 1
+            imageUrl, // This is a data URL, not a blob URL
+            scale: 1,
+            displayText: title // Initialize with the title
           });
+
+          // Log success
           console.log(`${type} image added with ID:`, id);
+          console.log(`Total ${type} images:`, contents.filter(item => item.type === type).length + 1);
+
           resolve(id);
         });
       } catch (error) {
@@ -94,7 +101,7 @@ export const useContentManager = (): ContentManagerHook => {
         reject(error);
       }
     });
-  }, [addContent]);
+  }, [addContent, contents]);
 
   const updateImageScale = useCallback((id: string, scale: number) => {
     updateContent(id, { scale });

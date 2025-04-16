@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { WizardProvider } from './contexts/WizardContext';
 import { ToastProvider } from './components/ui/Toast';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { FirebaseProvider } from './components/FirebaseProvider';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/layout/Layout';
 import SuspenseFallback from './components/ui/SuspenseFallback';
@@ -19,12 +20,13 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <WizardProvider>
-          <ThemeProvider>
-            <ToastProvider>
-              {/* Performance monitor (only visible in development) */}
-              <PerformanceMonitor />
-              <Routes>
+        <FirebaseProvider>
+          <WizardProvider>
+            <ThemeProvider>
+              <ToastProvider>
+                {/* Performance monitor (only visible in development) */}
+                <PerformanceMonitor />
+                <Routes>
                 {/* Public Routes */}
                 <Route
                   path="/login"
@@ -90,6 +92,7 @@ function App() {
             </ToastProvider>
           </ThemeProvider>
         </WizardProvider>
+        </FirebaseProvider>
       </AuthProvider>
     </Router>
   );
