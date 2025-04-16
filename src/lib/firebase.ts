@@ -14,12 +14,21 @@ const firebaseConfig = {
 };
 
 // Check if Firebase environment variables are set
-if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-  console.error('Missing Firebase environment variables. Check your .env.local file.');
+const missingVars = Object.entries(firebaseConfig).filter(([_, value]) => !value);
+if (missingVars.length > 0) {
+  const missing = missingVars.map(([key]) => key).join(', ');
+  throw new Error(`Missing Firebase configuration variables: ${missing}. Check your .env.local file.`);
 }
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+let app;
+try {
+  app = initializeApp(firebaseConfig);
+  console.log('[Firebase] Successfully initialized');
+} catch (error) {
+  console.error('[Firebase] Initialization error:', error);
+  throw error;
+}
 
 // Initialize services
 export const db = getFirestore(app);

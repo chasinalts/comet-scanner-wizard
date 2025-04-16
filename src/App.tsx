@@ -19,8 +19,8 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <FirebaseProvider>
+      <FirebaseProvider>
+        <AuthProvider>
           <WizardProvider>
             <ThemeProvider>
               <ToastProvider>
@@ -92,9 +92,9 @@ function App() {
             </ToastProvider>
           </ThemeProvider>
         </WizardProvider>
-        </FirebaseProvider>
       </AuthProvider>
-    </Router>
+    </FirebaseProvider>
+  </Router>
   );
 }
 

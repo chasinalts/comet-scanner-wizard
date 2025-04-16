@@ -13,20 +13,25 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
   const [isFirebaseReady, setIsFirebaseReady] = useState<boolean>(false);
   const [needsMigration, setNeedsMigration] = useState<boolean>(false);
   const [isChecking, setIsChecking] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Check if Firebase is configured and if we need to migrate data
   useEffect(() => {
     const checkFirebaseSetup = async () => {
+      console.log('[FirebaseProvider] Starting initialization check');
+      console.log('[FirebaseProvider] Current user:', currentUser?.username || 'No user');
+      
       if (!currentUser) {
-        // If not logged in, we don't need to check for migration yet
+        console.log('[FirebaseProvider] No user, skipping Firebase check');
         setIsChecking(false);
         setIsFirebaseReady(true);
         return;
       }
 
       try {
-        // Check if Firebase is properly configured
+        console.log('[FirebaseProvider] Testing Firebase connection');
         const testQuery = await getDocs(collection(db, 'images'));
+        console.log('[FirebaseProvider] Firebase connection test successful');
         
         // Check if we need to migrate data
         // If there's no data in Firebase but we have data in IndexedDB/localStorage, we need to migrate
@@ -39,8 +44,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
         }
       } catch (error) {
         console.error('[Firebase] Error checking Firebase setup:', error);
-        // If Firebase is not configured properly, we'll just use local storage
-        setIsFirebaseReady(true);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to initialize Firebase';
+        console.error('[FirebaseProvider] Detailed error:', errorMessage);
+        setError(errorMessage);
+        // Don't set isFirebaseReady to true if there's an error
       } finally {
         setIsChecking(false);
       }
@@ -53,6 +60,20 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
     setNeedsMigration(false);
     setIsFirebaseReady(true);
   };
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center p-4 max-w-md">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+            <strong className="font-bold">Firebase Error:</strong>
+            <p className="block sm:inline"> {error}</p>
+            <p className="mt-2 text-sm">Please check your Firebase configuration in .env.local file.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isChecking) {
     return (

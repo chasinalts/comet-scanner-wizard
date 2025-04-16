@@ -44,17 +44,17 @@ const AdminDashboardContent = () => {
   const { showToast } = useToast();
   const { theme } = useTheme();
   const { addImage, getImage, deleteImage, isLoading: imageLoading } = useFirebaseImage();
-  const { 
-    contents, 
-    setContents, 
-    saveContent, 
-    deleteContent, 
-    saveAllContents, 
-    isLoading: contentLoading 
+  const {
+    contents,
+    setContents,
+    saveContent,
+    deleteContent,
+    saveAllContents,
+    isLoading: contentLoading
   } = useFirebaseContent();
 
   const [contentUploading, setContentUploading] = useState<ContentUploadState | null>(null);
-  
+
   // Track loaded image data
   const [bannerImageData, setBannerImageData] = useState<string | undefined>();
   const [scannerImageData, setScannerImageData] = useState<Record<string, string>>({});
@@ -228,7 +228,7 @@ const AdminDashboardContent = () => {
       <section className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Banner Image</h2>
         <p className="text-gray-600 dark:text-gray-300 mb-4">
-          Upload a banner image to display at the top of the main page.
+          The banner image appears at the top of the main page and sets the tone for your scanner template. Upload an eye-catching image here.
         </p>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -292,7 +292,7 @@ const AdminDashboardContent = () => {
       <section className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Scanner Variations</h2>
         <p className="text-gray-600 dark:text-gray-300 mb-4">
-          Upload images of different scanner variations to display on the main page.
+          A scanner's data can be visualized in a variety of ways. Upload different scanner variation images to display on the main page.
         </p>
 
         <div className="mb-6">
