@@ -28,7 +28,7 @@ const itemVariants = {
 };
 
 const ScannerWizard = () => {
-  const { getBannerImage } = useAdminContent();
+  const { getBannerImage, getScannerImages } = useAdminContent();
   const { } = useAuth(); // Auth context is used but currentUser is not needed
   const { theme } = useTheme();
   const { state: wizardState, dispatch: wizardDispatch } = useWizard();
@@ -48,7 +48,12 @@ const ScannerWizard = () => {
 
   // Get banner and scanner images from admin content
   const bannerContent = getBannerImage();
-  // const scannerImages = getScannerImages(); // Unused variable
+  const scannerImages = getScannerImages();
+
+  // Debug: Log scanner images
+  useEffect(() => {
+    console.log('Scanner Images:', scannerImages);
+  }, [scannerImages]);
 
   const handleAnswerChange = (questionId: string, value: any) => {
     wizardDispatch({ type: 'SET_ANSWER', payload: { questionId, value } });
@@ -138,10 +143,8 @@ const ScannerWizard = () => {
             variants={itemVariants}
             className="py-12 px-4 text-center"
           >
-            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-gray-900 dark:text-white font-display tracking-tight">
-              COMET Scanner
-              <br />
-              Template Wizard
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white font-display tracking-tight">
+              COMET Scanner Template Wizard
             </h1>
           </motion.div>
 
@@ -174,6 +177,46 @@ const ScannerWizard = () => {
               </div>
             )}
           </motion.div>
+
+          {/* Scanner Variations Gallery */}
+          {scannerImages.length > 0 && (
+            <motion.div
+              variants={itemVariants}
+              className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+                Scanner Variations
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {scannerImages.map((image) => (
+                  <div
+                    key={image.id}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
+                    onClick={() => {
+                      setSelectedImage(image.src);
+                      setSelectedTitle(image.displayText || 'Scanner Variation');
+                    }}
+                  >
+                    <div className="aspect-video bg-gray-100 dark:bg-gray-700 relative overflow-hidden">
+                      <img
+                        src={image.src}
+                        alt={image.alt}
+                        className="w-full h-full object-contain"
+                        style={{ transform: `scale(${image.scale || 1})` }}
+                      />
+                    </div>
+                    {image.displayText && (
+                      <div className="p-4">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                          {image.displayText}
+                        </h3>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           {/* Main Content Area */}
           <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-1 lg:grid-cols-3 gap-8">

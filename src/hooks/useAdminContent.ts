@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { memoize } from '../utils/memoization';
 
-interface ContentItem {
+export interface ContentItem {
   id: string;
   type: 'banner' | 'scanner' | 'template' | 'question';
   title: string;
