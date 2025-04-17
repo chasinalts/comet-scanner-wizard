@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Preload critical assets -->
-    <link rel="preload" href="data:application/octet-stream;base64,aW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JzsKaW1wb3J0IFJlYWN0RE9NIGZyb20gJ3JlYWN0LWRvbS9jbGllbnQnOwppbXBvcnQgQXBwIGZyb20gJy4vQXBwJzsKaW1wb3J0ICcuL2luZGV4LmNzcyc7CmltcG9ydCB7IEF1dGhQcm92aWRlciB9IGZyb20gJy4vY29udGV4dHMvQXV0aENvbnRleHQnOwppbXBvcnQgeyB2ZXJpZnlBZG1pblNldHVwIH0gZnJvbSAnLi91dGlscy92ZXJpZnlBZG1pblNldHVwJzsKaW1wb3J0IHsgdGVzdEFkbWluQWNjb3VudCB9IGZyb20gJy4vdXRpbHMvdGVzdEFkbWluU2V0dXAnOwppbXBvcnQgeyByZWdpc3RlclNlcnZpY2VXb3JrZXIgfSBmcm9tICcuL3V0aWxzL3NlcnZpY2VXb3JrZXJSZWdpc3RyYXRpb24nOwppbXBvcnQgYW5hbHl0aWNzIGZyb20gJy4vdXRpbHMvYW5hbHl0aWNzJzsKCi8vIFZlcmlmeSBhZG1pbiBzZXR1cCBvbiBhcHBsaWNhdGlvbiBzdGFydAp2ZXJpZnlBZG1pblNldHVwKCk7CgovLyBJbiBkZXZlbG9wbWVudCwgcnVuIHRoZSBhZG1pbiBhY2NvdW50IHRlc3QKaWYgKGltcG9ydC5tZXRhLmVudi5ERVYpIHsKICB0ZXN0QWRtaW5BY2NvdW50KCkKICAgIC50aGVuKChzdWNjZXNzOiBib29sZWFuKSA9PiB7CiAgICAgIGNvbnNvbGUubG9nKCdcbkFkbWluIHNldHVwIHZlcmlmaWNhdGlvbiBjb21wbGV0ZWQuJyk7CiAgICAgIGlmICghc3VjY2VzcykgewogICAgICAgIGNvbnNvbGUud2FybignUGxlYXNlIGNoZWNrIHRoZSBhZG1pbiBhY2NvdW50IGNvbmZpZ3VyYXRpb24uJyk7CiAgICAgIH0KICAgIH0pCiAgICAuY2F0Y2goKGVycm9yOiBFcnJvcikgPT4gewogICAgICBjb25zb2xlLmVycm9yKCdFcnJvciBkdXJpbmcgYWRtaW4gc2V0dXAgdmVyaWZpY2F0aW9uOicsIGVycm9yKTsKICAgIH0pOwp9CgpSZWFjdERPTS5jcmVhdGVSb290KGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyb290JykgYXMgSFRNTEVsZW1lbnQpLnJlbmRlcigKICA8UmVhY3QuU3RyaWN0TW9kZT4KICAgIDxBdXRoUHJvdmlkZXI+CiAgICAgIDxBcHAgLz4KICAgIDwvQXV0aFByb3ZpZGVyPgogIDwvUmVhY3QuU3RyaWN0TW9kZT4KKTsKCi8vIFJlZ2lzdGVyIHNlcnZpY2Ugd29ya2VyIGZvciBjYWNoaW5nCnJlZ2lzdGVyU2VydmljZVdvcmtlcigpOwoKLy8gSW5pdGlhbGl6ZSBwZXJmb3JtYW5jZSBhbmFseXRpY3MKYW5hbHl0aWNzLmluaXQoKTsK" as="script" type="module" />
+    <link rel="preload" href="data:application/octet-stream;base64,aW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JzsKaW1wb3J0IFJlYWN0RE9NIGZyb20gJ3JlYWN0LWRvbS9jbGllbnQnOwppbXBvcnQgQXBwIGZyb20gJy4vQXBwJzsKaW1wb3J0ICcuL2luZGV4LmNzcyc7CmltcG9ydCB7IEF1dGhQcm92aWRlciB9IGZyb20gJy4vY29udGV4dHMvQXV0aENvbnRleHQnOwppbXBvcnQgeyB2ZXJpZnlBZG1pblNldHVwIH0gZnJvbSAnLi91dGlscy92ZXJpZnlBZG1pblNldHVwJzsKaW1wb3J0IHsgdGVzdEFkbWluQWNjb3VudCB9IGZyb20gJy4vdXRpbHMvdGVzdEFkbWluU2V0dXAnOwovLyBUZW1wb3JhcmlseSBkaXNhYmxlZCBmb3IgcGVyZm9ybWFuY2UKLy8gaW1wb3J0IHsgcmVnaXN0ZXJTZXJ2aWNlV29ya2VyIH0gZnJvbSAnLi91dGlscy9zZXJ2aWNlV29ya2VyUmVnaXN0cmF0aW9uJzsKLy8gaW1wb3J0IGFuYWx5dGljcyBmcm9tICcuL3V0aWxzL2FuYWx5dGljcyc7CgovLyBWZXJpZnkgYWRtaW4gc2V0dXAgb24gYXBwbGljYXRpb24gc3RhcnQKdmVyaWZ5QWRtaW5TZXR1cCgpOwoKLy8gSW4gZGV2ZWxvcG1lbnQsIHJ1biB0aGUgYWRtaW4gYWNjb3VudCB0ZXN0CmlmIChpbXBvcnQubWV0YS5lbnYuREVWKSB7CiAgdGVzdEFkbWluQWNjb3VudCgpCiAgICAudGhlbigoc3VjY2VzczogYm9vbGVhbikgPT4gewogICAgICBjb25zb2xlLmxvZygnXG5BZG1pbiBzZXR1cCB2ZXJpZmljYXRpb24gY29tcGxldGVkLicpOwogICAgICBpZiAoIXN1Y2Nlc3MpIHsKICAgICAgICBjb25zb2xlLndhcm4oJ1BsZWFzZSBjaGVjayB0aGUgYWRtaW4gYWNjb3VudCBjb25maWd1cmF0aW9uLicpOwogICAgICB9CiAgICB9KQogICAgLmNhdGNoKChlcnJvcjogRXJyb3IpID0+IHsKICAgICAgY29uc29sZS5lcnJvcignRXJyb3IgZHVyaW5nIGFkbWluIHNldHVwIHZlcmlmaWNhdGlvbjonLCBlcnJvcik7CiAgICB9KTsKfQoKUmVhY3RET00uY3JlYXRlUm9vdChkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncm9vdCcpIGFzIEhUTUxFbGVtZW50KS5yZW5kZXIoCiAgPFJlYWN0LlN0cmljdE1vZGU+CiAgICA8QXV0aFByb3ZpZGVyPgogICAgICA8QXBwIC8+CiAgICA8L0F1dGhQcm92aWRlcj4KICA8L1JlYWN0LlN0cmljdE1vZGU+Cik7CgovLyBUZW1wb3JhcmlseSBkaXNhYmxlIHNlcnZpY2Ugd29ya2VyIGFuZCBhbmFseXRpY3MgdG8gaW1wcm92ZSBwZXJmb3JtYW5jZQovLyByZWdpc3RlclNlcnZpY2VXb3JrZXIoKTsKLy8gYW5hbHl0aWNzLmluaXQoKTsK" as="script" type="module" />
 
     <!-- Cache control -->
     <meta http-equiv="Cache-Control" content="max-age=86400" />
@@ -27,9 +27,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="COMET Scanner" />
     <link rel="apple-touch-icon" href="/vite.svg" />
-    <script type="module" crossorigin src="/assets/index-DDtZIve0.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/vendor-CcvdagZv.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-BZOHAzIl.css">
+    <script type="module" crossorigin src="/assets/index-Bph1kvnV.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-other-B8UD1HAJ.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-react-CSSImZ_M.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-supabase-Be-ScRHE.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-framer-Cbqpt-xa.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-6eCaiLia.css">
   </head>
   <body>
     <div id="root"></div>

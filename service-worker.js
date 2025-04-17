@@ -6,8 +6,9 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/vite.svg',
-  '/src/main.tsx',
-  '/src/index.css',
+  // Don't cache source files, only built assets
+  // '/src/main.tsx',
+  // '/src/index.css',
 ];
 
 // Install event - cache static assets
@@ -73,18 +74,18 @@ self.addEventListener('fetch', (event) => {
         if (cachedResponse) {
           return cachedResponse;
         }
-        
+
         return fetch(event.request).then((response) => {
           // Don't cache non-successful responses
           if (!response || response.status !== 200 || response.type !== 'basic') {
             return response;
           }
-          
+
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
-          
+
           return response;
         });
       })
@@ -102,7 +103,7 @@ self.addEventListener('fetch', (event) => {
         });
         return networkResponse;
       });
-      
+
       // Return cached response immediately, or wait for network
       return cachedResponse || fetchPromise;
     })
