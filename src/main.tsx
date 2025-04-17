@@ -5,8 +5,9 @@ import './index.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { verifyAdminSetup } from './utils/verifyAdminSetup';
 import { testAdminAccount } from './utils/testAdminSetup';
-import { registerServiceWorker } from './utils/serviceWorkerRegistration';
-import analytics from './utils/analytics';
+// Temporarily disabled for performance
+// import { registerServiceWorker } from './utils/serviceWorkerRegistration';
+// import analytics from './utils/analytics';
 
 // Verify admin setup on application start
 verifyAdminSetup();
@@ -33,8 +34,6 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   </React.StrictMode>
 );
 
-// Register service worker for caching
-registerServiceWorker();
-
-// Initialize performance analytics
-analytics.init();
+// Temporarily disable service worker and analytics to improve performance
+// registerServiceWorker();
+// analytics.init();

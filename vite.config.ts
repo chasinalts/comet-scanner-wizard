@@ -3,27 +3,80 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
+
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
     },
   },
+
   build: {
-    sourcemap: true,
+    // Disable sourcemaps in production for better performance
+    sourcemap: mode === 'development',
+    // Optimize chunk size
+    chunkSizeWarningLimit: 1000,
+    // CSS optimization
+    cssCodeSplit: true,
+    // Asset optimization
+    assetsInlineLimit: 4096, // 4kb
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor': ['react', 'react-dom', 'react-router-dom', 'framer-motion']
+        // Ensure assets are in predictable locations
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        // Manual chunk configuration
+        manualChunks: (id) => {
+          // Create separate chunks for major dependencies
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor-react';
+            }
+            if (id.includes('framer-motion')) {
+              return 'vendor-framer';
+            }
+            if (id.includes('supabase')) {
+              return 'vendor-supabase';
+            }
+            // Group other UI libraries
+            if (id.includes('@headlessui') || id.includes('@heroicons')) {
+              return 'vendor-ui';
+            }
+            // Group monaco editor separately
+            if (id.includes('monaco-editor')) {
+              return 'vendor-monaco';
+            }
+            return 'vendor-other';
+          }
         }
       }
     }
   },
-  // Force reload on service worker changes
+
+  // Development server configuration
   server: {
     watch: {
-      ignored: ['**/public/**']
-    }
+      ignored: ['**/public/**', '**/node_modules/**']
+    },
+    // Enable HMR
+    hmr: true,
+    // Optimize for development
+    host: 'localhost',
+    port: 3000,
+    open: true,
+    // Reduce console noise
+    cors: true,
+    // Improve performance
+    fs: {
+      strict: true,
+    },
+  },
+
+  // Preview server configuration
+  preview: {
+    port: 4173,
+    open: true,
   }
-});
+}));

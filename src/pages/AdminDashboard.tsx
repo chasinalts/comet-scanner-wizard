@@ -1,14 +1,14 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
-import { motion, Reorder, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+// import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../components/ui/Toast';
-import Button from '../components/ui/Button';
+// import Button from '../components/ui/Button';
 import DragDropUpload from '../components/ui/DragDropUpload';
-import { TextField, TextArea, CheckboxField, SelectField } from '../components/ui/FormField';
+// import { TextField, TextArea, CheckboxField, SelectField } from '../components/ui/FormField';
 import { useTheme } from '../contexts/ThemeContext';
-import { handleImageUpload, cleanupImageUrl } from '../utils/imageHandlers';
-import { useQuestions } from '../hooks/useQuestions';
-import { useSections } from '../hooks/useSections';
+import { handleImageUpload } from '../utils/imageHandlers';
+// import { useQuestions } from '../hooks/useQuestions';
+// import { useSections } from '../hooks/useSections';
 import { useSupabaseImage } from '../hooks/useSupabaseImage';
 import { useSupabaseContent } from '../hooks/useSupabaseContent';
 
@@ -42,15 +42,15 @@ const AdminDashboard = () => {
 const AdminDashboardContent = () => {
   const { currentUser } = useAuth();
   const { showToast } = useToast();
-  const { theme } = useTheme();
-  const { addImage, getImage, deleteImage, isLoading: imageLoading } = useSupabaseImage();
+  useTheme(); // Keep the hook call to maintain dependencies
+  const { addImage, getImage, deleteImage } = useSupabaseImage();
   const {
     contents,
-    setContents,
+    // setContents,
     saveContent,
     deleteContent,
-    saveAllContents,
-    isLoading: contentLoading
+    // saveAllContents,
+    // isLoading: contentLoading
   } = useSupabaseContent();
 
   const [contentUploading, setContentUploading] = useState<ContentUploadState | null>(null);
@@ -93,7 +93,12 @@ const AdminDashboardContent = () => {
           .then(data => {
             if (data) {
               console.log('[Image Load] Scanner image loaded:', image.imageId);
-              setScannerImageData(prev => ({ ...prev, [image.imageId]: data }));
+              setScannerImageData(prev => {
+                if (image.imageId) {
+                  return { ...prev, [image.imageId]: data };
+                }
+                return prev;
+              });
             } else {
               console.warn('[Image Load] Scanner image not found:', image.imageId);
             }
@@ -112,17 +117,34 @@ const AdminDashboardContent = () => {
 
     try {
       setContentUploading({ type, progress: 0 });
+      console.log(`[Upload] Starting ${type} image upload: ${file.name} (${file.size} bytes)`);
 
       // Process and store image
       await new Promise<void>((resolve, reject) => {
         handleImageUpload(file, async (imageUrl: string) => {
-          console.log('[Upload] Image processed successfully');
+          console.log('[Upload] Image processed successfully, data URL length:', imageUrl.length);
           const imageId = `${type}-${Date.now()}`;
 
           try {
+            console.log(`[Upload] Attempting to store image in Supabase with ID: ${imageId}`);
+            let supabaseStorageSuccessful = true;
+
             // Store image data in Supabase
-            await addImage(imageId, imageUrl, type);
-            console.log('[Upload] Image stored in Supabase:', imageId);
+            try {
+              await addImage(imageId, imageUrl, type);
+              console.log('[Upload] Image successfully stored in Supabase:', imageId);
+            } catch (uploadError) {
+              console.error('[Upload] Supabase storage failed:', uploadError);
+              supabaseStorageSuccessful = false;
+
+              // Store in localStorage as fallback
+              console.log('[Upload] Falling back to localStorage for image storage');
+              localStorage.setItem(`image_${imageId}`, imageUrl);
+              console.log('[Upload] Image stored in localStorage as fallback');
+
+              // Show warning to user
+              showToast('info', 'Image stored locally. It may not persist across devices.');
+            }
 
             // Create new content metadata
             const newContent: ContentMetadata = {
@@ -138,25 +160,54 @@ const AdminDashboardContent = () => {
 
             // If it's a banner, delete the old one
             if (type === 'banner' && bannerImage) {
-              await deleteContent(bannerImage.id);
-              if (bannerImage.imageId) {
-                await deleteImage(bannerImage.imageId);
+              console.log('[Upload] Removing old banner image:', bannerImage.id);
+              try {
+                await deleteContent(bannerImage.id);
+                if (bannerImage.imageId) {
+                  await deleteImage(bannerImage.imageId);
+                }
+                console.log('[Upload] Old banner image removed successfully');
+              } catch (deleteError) {
+                console.error('[Upload] Error removing old banner:', deleteError);
+                // Continue anyway - we'll overwrite it
               }
             }
 
             // Save the new content to Supabase
-            await saveContent(newContent);
+            let contentSaveSuccessful = true;
+            try {
+              console.log('[Upload] Saving content metadata to Supabase');
+              await saveContent(newContent);
+              console.log('[Upload] Content metadata saved successfully');
+            } catch (contentError) {
+              console.error('[Upload] Error saving content metadata:', contentError);
+              contentSaveSuccessful = false;
+
+              // Store in localStorage as fallback
+              console.log('[Upload] Falling back to localStorage for content metadata');
+              const existingContents = JSON.parse(localStorage.getItem('admin_contents') || '[]');
+              existingContents.push(newContent);
+              localStorage.setItem('admin_contents', JSON.stringify(existingContents));
+              console.log('[Upload] Content metadata stored in localStorage as fallback');
+            }
 
             // Load the new image data
+            console.log('[Upload] Updating UI with new image');
             if (type === 'banner') {
               setBannerImageData(imageUrl);
             } else {
               setScannerImageData(prev => ({ ...prev, [imageId]: imageUrl }));
             }
 
+            // Show appropriate message based on storage success
+            if (!supabaseStorageSuccessful || !contentSaveSuccessful) {
+              showToast('info', 'Image uploaded with limited persistence. Check console for details.');
+            }
+
+            console.log('[Upload] Upload process completed successfully');
             resolve();
           } catch (error) {
-            console.error('[Upload] Failed to store content:', error);
+            console.error('[Upload] Critical error in upload process:', error);
             reject(error);
           }
         });
@@ -187,6 +238,7 @@ const AdminDashboardContent = () => {
           setBannerImageData(undefined);
         } else {
           setScannerImageData(prev => {
+            if (!content.imageId) return prev;
             const { [content.imageId]: removed, ...rest } = prev;
             return rest;
           });
@@ -236,8 +288,8 @@ const AdminDashboardContent = () => {
             <DragDropUpload
               onFileSelect={(file) => handleContentUpload('banner', file)}
               accept="image/*"
-              maxSize={5 * 1024 * 1024} // 5MB
-              loading={contentUploading?.type === 'banner'}
+              maxSize={5} // 5MB
+              isLoading={contentUploading?.type === 'banner'}
               label="Drag & drop a banner image or click to browse"
             />
           </div>
@@ -299,8 +351,8 @@ const AdminDashboardContent = () => {
           <DragDropUpload
             onFileSelect={(file) => handleContentUpload('scanner', file)}
             accept="image/*"
-            maxSize={5 * 1024 * 1024} // 5MB
-            loading={contentUploading?.type === 'scanner'}
+            maxSize={5} // 5MB
+            isLoading={contentUploading?.type === 'scanner'}
             label="Drag & drop a scanner image or click to browse"
           />
         </div>
@@ -309,11 +361,11 @@ const AdminDashboardContent = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {scannerImages.map((image) => (
             <div key={image.id} className="relative group bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-              {scannerImageData[image.imageId] ? (
+              {image.imageId && scannerImageData[image.imageId] ? (
                 <>
                   <div className="relative aspect-square overflow-hidden rounded-lg mb-2">
                     <img
-                      src={scannerImageData[image.imageId]}
+                      src={image.imageId ? scannerImageData[image.imageId] : ''}
                       alt={image.title}
                       className="w-full h-full object-cover"
                     />

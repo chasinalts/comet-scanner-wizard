@@ -9,6 +9,7 @@ interface DragDropUploadProps {
   description?: string;
   variant?: 'default' | 'compact';
   isLoading?: boolean;
+  label?: string; // Added for backward compatibility
 }
 
 interface FileError {
@@ -93,8 +94,13 @@ export default function DragDropUpload({
   title = 'Upload File',
   description = 'Drag and drop a file here, or click to select',
   variant = 'default',
-  isLoading = false
+  isLoading = false,
+  label // If provided, will override title
 }: DragDropUploadProps) {
+  // Use label as title if provided (for backward compatibility)
+  if (label) {
+    title = label;
+  }
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<FileError | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -106,7 +112,7 @@ export default function DragDropUpload({
         message: `File size exceeds ${maxSize}MB limit`
       };
     }
-    
+
     if (!accept.includes('*') && !accept.includes(file.type)) {
       return {
         type: 'type',
@@ -180,7 +186,7 @@ export default function DragDropUpload({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       initial={{ opacity: 0 }}
-      animate={{ 
+      animate={{
         opacity: 1,
         borderColor: isDragging ? '#3B82F6' : error ? '#EF4444' : undefined,
         scale: isDragging ? 1.02 : 1
@@ -191,8 +197,8 @@ export default function DragDropUpload({
         ${isCompact ? 'p-3' : 'p-6'}
         rounded-lg border-2 border-dashed
         ${isLoading ? 'cursor-wait ' : ''}
-        ${error 
-          ? 'border-red-500 bg-red-50 dark:bg-red-900/20' 
+        ${error
+          ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
           : isDragging
             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
             : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'

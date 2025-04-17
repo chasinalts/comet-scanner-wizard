@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { migrationService } from '../services/supabaseService';
 import Button from './ui/Button';
@@ -9,7 +9,7 @@ interface MigrationManagerProps {
 }
 
 export const SupabaseMigrationManager: React.FC<MigrationManagerProps> = ({ onComplete }) => {
-  const { currentUser } = useAuth();
+  useAuth(); // Keep the hook call to maintain dependencies
   const [step, setStep] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,7 +105,7 @@ export const SupabaseMigrationManager: React.FC<MigrationManagerProps> = ({ onCo
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full">
         <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Data Migration</h2>
-        
+
         <p className="text-gray-600 dark:text-gray-300 mb-4">
           We need to migrate your existing data to the new database system.
           This will ensure all your content is preserved.
@@ -133,8 +133,8 @@ export const SupabaseMigrationManager: React.FC<MigrationManagerProps> = ({ onCo
               </div>
             </div>
             <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200">
-              <div 
-                style={{ width: `${progress}%` }} 
+              <div
+                style={{ width: `${progress}%` }}
                 className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-500"
               ></div>
             </div>

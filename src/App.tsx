@@ -9,12 +9,30 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/layout/Layout';
 import SuspenseFallback from './components/ui/SuspenseFallback';
 import PerformanceMonitor from './components/dev/PerformanceMonitor';
+import DebugConsole from './components/dev/DebugConsole';
 
-// Lazy load page components
+// Lazy load page components with prefetching
 const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/Signup'));
 const ScannerWizard = lazy(() => import('./pages/ScannerWizard'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+
+// Prefetch components after initial load
+const prefetchComponents = () => {
+  // Wait for the main page to load first
+  window.addEventListener('load', () => {
+    // Use setTimeout to delay prefetching until after the main page is interactive
+    setTimeout(() => {
+      // Prefetch other routes in the background
+      import('./pages/Login');
+      import('./pages/Signup');
+      import('./pages/AdminDashboard');
+    }, 2000);
+  });
+};
+
+// Call prefetch function
+prefetchComponents();
 
 function App() {
   return (
@@ -24,8 +42,9 @@ function App() {
           <WizardProvider>
             <ThemeProvider>
               <ToastProvider>
-                {/* Performance monitor (only visible in development) */}
+                {/* Development tools (only visible in development) */}
                 <PerformanceMonitor />
+                <DebugConsole />
                 <Routes>
                 {/* Public Routes */}
                 <Route

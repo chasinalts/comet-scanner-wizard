@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Modal from '../components/ui/Modal';
-import { useAdminContent, type ContentItem } from '../hooks/useAdminContent';
+import { useAdminContent } from '../hooks/useAdminContent';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeToggle from '../components/ui/ThemeToggle';

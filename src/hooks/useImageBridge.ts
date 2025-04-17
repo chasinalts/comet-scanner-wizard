@@ -11,7 +11,7 @@ export const useImageBridge = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Load content metadata from localStorage
-  const loadContentMetadata = (): ContentItem[] => {
+  const loadContentMetadata = (): (ContentItem & { imageId?: string })[] => {
     try {
       const savedContents = localStorage.getItem('admin_contents');
       return savedContents ? JSON.parse(savedContents) : [];
@@ -26,19 +26,19 @@ export const useImageBridge = () => {
     const loadImages = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const contents = loadContentMetadata();
         const imageIds = contents
           .filter(item => item.type === 'banner' || item.type === 'scanner')
           .map(item => item.imageId)
           .filter(Boolean);
-        
+
         console.log('[ImageBridge] Loading images:', imageIds);
-        
+
         const imagePromises = imageIds.map(async (imageId) => {
           if (!imageId) return null;
-          
+
           try {
             const imageData = await getImage(imageId);
             if (imageData) {
@@ -51,16 +51,16 @@ export const useImageBridge = () => {
             return null;
           }
         });
-        
+
         const results = await Promise.all(imagePromises);
         const newCache: Record<string, string> = {};
-        
+
         results.forEach(result => {
           if (result) {
             newCache[result.imageId] = result.imageData;
           }
         });
-        
+
         setImageCache(newCache);
         console.log('[ImageBridge] Images loaded:', Object.keys(newCache).length);
       } catch (err) {
@@ -70,26 +70,26 @@ export const useImageBridge = () => {
         setLoading(false);
       }
     };
-    
+
     loadImages();
   }, [getImage]);
-  
+
   // Get image data for a specific content item
-  const getImageForContent = (content: ContentItem): string | null => {
+  const getImageForContent = (content: ContentItem & { imageId?: string }): string | null => {
     if (!content.imageId) {
       console.warn('[ImageBridge] Content has no imageId:', content.id);
       return null;
     }
-    
+
     const imageData = imageCache[content.imageId];
     if (!imageData) {
       console.warn('[ImageBridge] Image not found in cache:', content.imageId);
       return null;
     }
-    
+
     return imageData;
   };
-  
+
   return {
     imageCache,
     loading,

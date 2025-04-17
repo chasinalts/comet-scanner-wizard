@@ -1,28 +1,28 @@
 import { useImageDB } from '../hooks/useImageDB';
-import { migrationService } from '../services/firebaseService';
+import { migrationService } from '../services/supabaseService';
 import type { ContentMetadata } from '../types';
 
-// Function to migrate images from IndexedDB to Firebase
+// Function to migrate images from IndexedDB to Supabase
 export const migrateImagesFromIndexedDB = async (): Promise<void> => {
   try {
-    console.log('[Migration] Starting image migration from IndexedDB to Firebase');
-    
+    console.log('[Migration] Starting image migration from IndexedDB to Supabase');
+
     // Get all images from IndexedDB
     const { getImage } = useImageDB();
     const db = await window.indexedDB.open('ImageStore', 1);
-    
+
     db.onsuccess = async (event) => {
       const database = (event.target as IDBOpenDBRequest).result;
       const transaction = database.transaction(['images'], 'readonly');
       const objectStore = transaction.objectStore('images');
       const request = objectStore.getAllKeys();
-      
+
       request.onsuccess = async () => {
         const keys = request.result as string[];
         console.log(`[Migration] Found ${keys.length} images to migrate`);
-        
+
         const images: Record<string, string> = {};
-        
+
         // Get all images data
         for (const key of keys) {
           const imageData = await getImage(key);
@@ -30,18 +30,18 @@ export const migrateImagesFromIndexedDB = async (): Promise<void> => {
             images[key] = imageData;
           }
         }
-        
-        // Migrate to Firebase
+
+        // Migrate to Supabase
         await migrationService.migrateImages(images);
         console.log('[Migration] Image migration completed successfully');
       };
-      
+
       request.onerror = (error) => {
         console.error('[Migration] Failed to get image keys from IndexedDB:', error);
         throw error;
       };
     };
-    
+
     db.onerror = (error) => {
       console.error('[Migration] Failed to open IndexedDB:', error);
       throw error;
@@ -52,22 +52,22 @@ export const migrateImagesFromIndexedDB = async (): Promise<void> => {
   }
 };
 
-// Function to migrate content from localStorage to Firebase
+// Function to migrate content from localStorage to Supabase
 export const migrateContentsFromLocalStorage = async (): Promise<void> => {
   try {
-    console.log('[Migration] Starting content migration from localStorage to Firebase');
-    
+    console.log('[Migration] Starting content migration from localStorage to Supabase');
+
     // Get contents from localStorage
     const contentsJson = localStorage.getItem('admin_contents');
     if (!contentsJson) {
       console.log('[Migration] No contents found in localStorage');
       return;
     }
-    
+
     const contents: ContentMetadata[] = JSON.parse(contentsJson);
     console.log(`[Migration] Found ${contents.length} contents to migrate`);
-    
-    // Migrate to Firebase
+
+    // Migrate to Supabase
     await migrationService.migrateContents(contents);
     console.log('[Migration] Content migration completed successfully');
   } catch (error) {
@@ -76,11 +76,11 @@ export const migrateContentsFromLocalStorage = async (): Promise<void> => {
   }
 };
 
-// Function to migrate user settings from localStorage to Firebase
+// Function to migrate user settings from localStorage to Supabase
 export const migrateUserSettingsFromLocalStorage = async (userId: string): Promise<void> => {
   try {
-    console.log('[Migration] Starting user settings migration from localStorage to Firebase');
-    
+    console.log('[Migration] Starting user settings migration from localStorage to Supabase');
+
     // Get all settings keys
     const settingsKeys = [
       'userSettings',
@@ -89,9 +89,9 @@ export const migrateUserSettingsFromLocalStorage = async (userId: string): Promi
       'baseTemplate',
       'templateQuestions'
     ];
-    
+
     const settings: Record<string, any> = {};
-    
+
     // Get all settings from localStorage
     for (const key of settingsKeys) {
       const settingJson = localStorage.getItem(key);
@@ -104,8 +104,8 @@ export const migrateUserSettingsFromLocalStorage = async (userId: string): Promi
         }
       }
     }
-    
-    // Migrate to Firebase
+
+    // Migrate to Supabase
     await migrationService.migrateUserSettings(userId, settings);
     console.log('[Migration] User settings migration completed successfully');
   } catch (error) {
