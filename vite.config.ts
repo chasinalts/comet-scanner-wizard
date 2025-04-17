@@ -65,7 +65,7 @@ export default defineConfig(({ mode }) => ({
     // Optimize for development
     host: 'localhost',
     port: 3000,
-    open: true,
+    open: false, // Disable auto-opening browser
     // Reduce console noise
     cors: true,
     // Improve performance
@@ -77,6 +77,12 @@ export default defineConfig(({ mode }) => ({
   // Preview server configuration
   preview: {
     port: 4173,
-    open: true,
+    open: false, // Disable auto-opening browser
+  },
+
+  // Optimize Node.js options
+  optimizeDeps: {
+    // Force inclusion of these dependencies
+    include: ['react', 'react-dom', 'framer-motion'],
   }
 }));

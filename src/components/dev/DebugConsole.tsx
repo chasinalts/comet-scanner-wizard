@@ -91,27 +91,27 @@ const LogLevelIcon: React.FC<{ level: LogLevel }> = ({ level }) => {
 export class DebugLogger {
   private static instance: DebugLogger;
   private listeners: ((log: LogEntry) => void)[] = [];
-  
+
   private constructor() {}
-  
+
   public static getInstance(): DebugLogger {
     if (!DebugLogger.instance) {
       DebugLogger.instance = new DebugLogger();
     }
     return DebugLogger.instance;
   }
-  
+
   public addListener(callback: (log: LogEntry) => void): () => void {
     this.listeners.push(callback);
     return () => {
       this.listeners = this.listeners.filter(listener => listener !== callback);
     };
   }
-  
+
   private notify(log: LogEntry): void {
     this.listeners.forEach(listener => listener(log));
   }
-  
+
   public log(level: LogLevel, message: string, details?: any, source?: string): void {
     const logEntry: LogEntry = {
       id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
@@ -121,9 +121,9 @@ export class DebugLogger {
       details,
       source
     };
-    
+
     this.notify(logEntry);
-    
+
     // Also log to console for convenience
     const consoleMsg = `[${source || 'Debug'}] ${message}`;
     switch (level) {
@@ -140,32 +140,32 @@ export class DebugLogger {
         console.log(`[${level}] ${consoleMsg}`, details || '');
     }
   }
-  
+
   // Convenience methods
   public info(message: string, details?: any, source?: string): void {
     this.log('info', message, details, source);
   }
-  
+
   public warn(message: string, details?: any, source?: string): void {
     this.log('warn', message, details, source);
   }
-  
+
   public error(message: string, details?: any, source?: string): void {
     this.log('error', message, details, source);
   }
-  
+
   public debug(message: string, details?: any, source?: string): void {
     this.log('debug', message, details, source);
   }
-  
+
   public image(message: string, details?: any, source?: string): void {
     this.log('image', message, details, source);
   }
-  
+
   public supabase(message: string, details?: any, source?: string): void {
     this.log('supabase', message, details, source);
   }
-  
+
   public state(message: string, details?: any, source?: string): void {
     this.log('state', message, details, source);
   }
@@ -180,7 +180,7 @@ export const useDebugLogger = () => {
 };
 
 // Main Debug Console Component
-const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 100 }) => {
+const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 50 }) => {
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'image' | 'supabase' | 'state' | 'network'>('all');
@@ -209,92 +209,177 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 100 }) => {
     setNetworkRequests([]);
   };
 
+  // Increase max listeners to prevent warnings
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return;
+
+    // Increase the maximum number of listeners for EventEmitter
+    if (typeof window !== 'undefined' && window.process && window.process.setMaxListeners) {
+      window.process.setMaxListeners(20);
+    }
+
+    // Also increase for Node.js EventEmitter if available
+    try {
+      const events = require('events');
+      if (events && events.EventEmitter && events.EventEmitter.defaultMaxListeners) {
+        events.EventEmitter.defaultMaxListeners = 20;
+      }
+    } catch (e) {
+      // Ignore if not in Node.js environment
+    }
+  }, []);
+
   // Monitor network requests
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return;
-    
+
     // Create a proxy for the fetch function to monitor network requests
     const originalFetch = window.fetch;
+
+    // Use a more memory-efficient approach to track network requests
+    let pendingRequests = 0;
+    const MAX_PENDING_REQUESTS = 10; // Limit concurrent request tracking
+
     window.fetch = async (input, init) => {
+      // Skip tracking if we have too many pending requests
+      const shouldTrack = pendingRequests < MAX_PENDING_REQUESTS;
+
+      if (shouldTrack) {
+        pendingRequests++;
+      }
+
       const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
       const method = init?.method || 'GET';
       const startTime = Date.now();
-      
+
       try {
         const response = await originalFetch(input, init);
         const endTime = Date.now();
         const duration = endTime - startTime;
-        
-        const requestInfo = {
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-          url,
-          method,
-          status: response.status,
-          duration,
-          timestamp: new Date(),
-          headers: init?.headers,
-        };
-        
-        setNetworkRequests(prev => [requestInfo, ...prev].slice(0, maxLogs));
-        
+
+        if (shouldTrack) {
+          pendingRequests--;
+
+          // Only track non-asset requests to reduce memory usage
+          const isAsset = url.match(/\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|css|js)$/i);
+          if (!isAsset) {
+            const requestInfo = {
+              id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+              url,
+              method,
+              status: response.status,
+              duration,
+              timestamp: new Date(),
+              // Don't store full headers to save memory
+              headers: init?.headers ? 'Present' : 'None',
+            };
+
+            setNetworkRequests(prev => {
+              const newRequests = [requestInfo, ...prev];
+              // Keep array size reasonable
+              return newRequests.slice(0, Math.min(maxLogs, 50));
+            });
+          }
+        }
+
         return response;
       } catch (error) {
         const endTime = Date.now();
         const duration = endTime - startTime;
-        
-        const requestInfo = {
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-          url,
-          method,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          duration,
-          timestamp: new Date(),
-          headers: init?.headers,
-        };
-        
-        setNetworkRequests(prev => [requestInfo, ...prev].slice(0, maxLogs));
-        
+
+        if (shouldTrack) {
+          pendingRequests--;
+
+          const requestInfo = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+            url,
+            method,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            duration,
+            timestamp: new Date(),
+            // Don't store full headers to save memory
+            headers: init?.headers ? 'Present' : 'None',
+          };
+
+          setNetworkRequests(prev => {
+            const newRequests = [requestInfo, ...prev];
+            // Keep array size reasonable
+            return newRequests.slice(0, Math.min(maxLogs, 50));
+          });
+        }
+
         throw error;
       }
     };
-    
+
     return () => {
       window.fetch = originalFetch;
     };
   }, [maxLogs]);
 
-  // Subscribe to debug logger
+  // Subscribe to debug logger with batched updates
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return;
-    
-    const removeListener = debugLogger.addListener((log) => {
-      setLogs(prev => [log, ...prev].slice(0, maxLogs));
-      
-      // Auto scroll to bottom if enabled
+
+    let pendingLogs: LogEntry[] = [];
+    let updateTimeout: number | null = null;
+
+    // Batch log updates to reduce render frequency
+    const processPendingLogs = () => {
+      if (pendingLogs.length === 0) return;
+
+      setLogs(prev => {
+        const newLogs = [...pendingLogs, ...prev].slice(0, maxLogs);
+        pendingLogs = [];
+        return newLogs;
+      });
+
+      // Auto scroll to top if enabled
       if (autoScroll && logContainerRef.current) {
-        setTimeout(() => {
-          if (logContainerRef.current) {
-            logContainerRef.current.scrollTop = 0;
-          }
-        }, 0);
+        logContainerRef.current.scrollTop = 0;
+      }
+
+      updateTimeout = null;
+    };
+
+    const removeListener = debugLogger.addListener((log) => {
+      pendingLogs.push(log);
+
+      // Schedule an update if one isn't already pending
+      if (!updateTimeout) {
+        updateTimeout = window.setTimeout(processPendingLogs, 100);
+      }
+
+      // Force update if we have accumulated enough logs
+      if (pendingLogs.length >= 10) {
+        if (updateTimeout) {
+          clearTimeout(updateTimeout);
+          updateTimeout = null;
+        }
+        processPendingLogs();
       }
     });
-    
-    return () => removeListener();
+
+    return () => {
+      removeListener();
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
+    };
   }, [maxLogs, autoScroll]);
 
   // Toggle visibility with keyboard shortcut (Alt+D)
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return;
-    
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey && e.key === 'd') {
         setIsVisible(prev => !prev);
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
-    
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -303,57 +388,84 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 100 }) => {
   // Override console methods to capture logs
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return;
-    
+
     const originalConsoleLog = console.log;
     const originalConsoleInfo = console.info;
     const originalConsoleWarn = console.warn;
     const originalConsoleError = console.error;
-    
+
+    // Helper function to safely stringify objects
+    const safeStringify = (obj: any): string => {
+      if (obj === null) return 'null';
+      if (obj === undefined) return 'undefined';
+      if (typeof obj !== 'object') return String(obj);
+
+      try {
+        // Limit object depth and handle circular references
+        const seen = new WeakSet();
+        return JSON.stringify(obj, (key, value) => {
+          if (typeof value === 'object' && value !== null) {
+            if (seen.has(value)) {
+              return '[Circular Reference]';
+            }
+            seen.add(value);
+          }
+          return value;
+        }, 2).substring(0, 500) + (JSON.stringify(obj).length > 500 ? '...' : '');
+      } catch (e) {
+        return '[Object - Unable to stringify]';
+      }
+    };
+
+    // Throttle log processing to avoid overwhelming the UI
+    let lastLogTime = 0;
+    const LOG_THROTTLE_MS = 100; // Only process logs every 100ms
+
+    // Process console logs with throttling
+    const processLog = (level: 'debug' | 'info' | 'warn' | 'error', args: any[]) => {
+      const now = Date.now();
+      if (now - lastLogTime < LOG_THROTTLE_MS) return;
+      lastLogTime = now;
+
+      try {
+        const message = args.map(arg =>
+          typeof arg === 'object' ? safeStringify(arg) : String(arg)
+        ).join(' ');
+
+        // Don't log debug console's own logs to avoid infinite loop
+        if (!message.includes('[Debug]')) {
+          switch (level) {
+            case 'debug': debugLogger.debug(message); break;
+            case 'info': debugLogger.info(message); break;
+            case 'warn': debugLogger.warn(message); break;
+            case 'error': debugLogger.error(message); break;
+          }
+        }
+      } catch (e) {
+        // Silently fail to avoid breaking the application
+      }
+    };
+
     console.log = (...args) => {
       originalConsoleLog(...args);
-      const message = args.map(arg => 
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-      ).join(' ');
-      
-      // Don't log debug console's own logs to avoid infinite loop
-      if (!message.includes('[Debug]')) {
-        debugLogger.debug(message);
-      }
+      processLog('debug', args);
     };
-    
+
     console.info = (...args) => {
       originalConsoleInfo(...args);
-      const message = args.map(arg => 
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-      ).join(' ');
-      
-      if (!message.includes('[Debug]')) {
-        debugLogger.info(message);
-      }
+      processLog('info', args);
     };
-    
+
     console.warn = (...args) => {
       originalConsoleWarn(...args);
-      const message = args.map(arg => 
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-      ).join(' ');
-      
-      if (!message.includes('[Debug]')) {
-        debugLogger.warn(message);
-      }
+      processLog('warn', args);
     };
-    
+
     console.error = (...args) => {
       originalConsoleError(...args);
-      const message = args.map(arg => 
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-      ).join(' ');
-      
-      if (!message.includes('[Debug]')) {
-        debugLogger.error(message);
-      }
+      processLog('error', args);
     };
-    
+
     return () => {
       console.log = originalConsoleLog;
       console.info = originalConsoleInfo;
@@ -371,12 +483,12 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 100 }) => {
     if (activeTab !== 'all' && log.level !== activeTab) {
       return false;
     }
-    
+
     // Filter by search text
     if (filter && !log.message.toLowerCase().includes(filter.toLowerCase())) {
       return false;
     }
-    
+
     return true;
   });
 
@@ -407,8 +519,8 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 100 }) => {
               <button
                 onClick={() => setAutoScroll(!autoScroll)}
                 className={`text-xs px-2 py-1 rounded ${
-                  autoScroll 
-                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                  autoScroll
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                 }`}
               >
@@ -422,7 +534,7 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 100 }) => {
               </button>
             </div>
           </div>
-          
+
           {/* Tabs */}
           <div className="flex border-b border-gray-200 dark:border-gray-700">
             <button
@@ -485,10 +597,10 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 100 }) => {
               />
             </div>
           </div>
-          
+
           {/* Log Content */}
           {activeTab !== 'network' ? (
-            <div 
+            <div
               ref={logContainerRef}
               className="overflow-auto flex-grow p-2 space-y-1"
               style={{ maxHeight: 'calc(80vh - 120px)' }}
@@ -499,7 +611,7 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 100 }) => {
                 </div>
               ) : (
                 filteredLogs.map(log => (
-                  <div 
+                  <div
                     key={log.id}
                     className="text-sm border-l-2 pl-2 py-1 mb-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
                     style={{ borderLeftColor: getLogLevelColor(log.level).replace('text-', 'border-').replace('-500', '-400') }}
@@ -525,8 +637,8 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 100 }) => {
                         </div>
                         {expandedLogs.has(log.id) && log.details && (
                           <pre className="mt-1 p-2 bg-gray-100 dark:bg-gray-900 rounded text-xs overflow-auto max-h-40">
-                            {typeof log.details === 'object' 
-                              ? JSON.stringify(log.details, null, 2) 
+                            {typeof log.details === 'object'
+                              ? JSON.stringify(log.details, null, 2)
                               : String(log.details)}
                           </pre>
                         )}
@@ -537,7 +649,7 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 100 }) => {
               )}
             </div>
           ) : (
-            <div 
+            <div
               className="overflow-auto flex-grow"
               style={{ maxHeight: 'calc(80vh - 120px)' }}
             >
@@ -605,7 +717,7 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 100 }) => {
               </table>
             </div>
           )}
-          
+
           {/* Footer */}
           <div className="p-2 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
             Press Alt+D to toggle debug console
