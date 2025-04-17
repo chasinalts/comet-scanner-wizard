@@ -180,7 +180,7 @@ export const useDebugLogger = () => {
 };
 
 // Main Debug Console Component
-const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 50 }) => {
+const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 20 }) => {
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'image' | 'supabase' | 'state' | 'network'>('all');
@@ -474,8 +474,22 @@ const DebugConsole: React.FC<DebugConsoleProps> = ({ maxLogs = 50 }) => {
     };
   }, []);
 
-  // Don't render anything in production
-  if (process.env.NODE_ENV !== 'development') return null;
+  // Don't render anything in production or if disabled via localStorage
+  if (process.env.NODE_ENV !== 'development' || localStorage.getItem('disable_debug_console') === 'true') return null;
+
+  // Add a way to completely disable the debug console if it causes issues
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Alt+Shift+D to disable the debug console completely
+      if (e.altKey && e.shiftKey && e.key === 'D') {
+        localStorage.setItem('disable_debug_console', 'true');
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Filter logs based on active tab and search filter
   const filteredLogs = logs.filter(log => {

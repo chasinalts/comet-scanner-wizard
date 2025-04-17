@@ -19,6 +19,18 @@ A comprehensive debugging console that provides:
 - Filter logs by type using the tabs
 - Search for specific log entries using the filter box
 - Click on a log entry to expand/collapse details
+- Press `Alt+Shift+D` to completely disable the debug console if it causes performance issues
+
+### LightDebugConsole
+
+A lightweight alternative to the full debug console that only shows critical errors and provides basic debugging functionality without the overhead of the full console.
+
+**Usage:**
+- Automatically activates when the full debug console is disabled
+- Press `Alt+E` to toggle the light debug console
+- Press `Alt+Shift+E` to re-enable the full debug console
+- Use the "Log" button to manually add debug messages
+- Use the "Clear" button to clear memory and potentially fix performance issues
 
 ### PerformanceMonitor
 

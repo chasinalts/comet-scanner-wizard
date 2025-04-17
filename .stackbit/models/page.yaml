@@ -1,0 +1,17 @@
+type: page
+name: page
+label: Page
+fields:
+  - type: string
+    name: title
+    label: Title
+    required: true
+  - type: string
+    name: layout
+    label: Layout
+    required: true
+    default: page
+  - type: string
+    name: slug
+    label: Slug
+    required: true

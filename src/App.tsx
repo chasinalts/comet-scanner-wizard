@@ -10,6 +10,7 @@ import Layout from './components/layout/Layout';
 import SuspenseFallback from './components/ui/SuspenseFallback';
 import PerformanceMonitor from './components/dev/PerformanceMonitor';
 import DebugConsole from './components/dev/DebugConsole';
+import LightDebugConsole from './components/dev/LightDebugConsole';
 
 // Lazy load page components with prefetching
 const Login = lazy(() => import('./pages/Login'));
@@ -45,6 +46,7 @@ function App() {
                 {/* Development tools (only visible in development) */}
                 <PerformanceMonitor />
                 <DebugConsole />
+                <LightDebugConsole />
                 <Routes>
                 {/* Public Routes */}
                 <Route

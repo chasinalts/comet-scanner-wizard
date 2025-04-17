@@ -4,7 +4,7 @@
   "type": "module",
   "version": "0.1.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host localhost --port 3000 --force",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
@@ -16,7 +16,8 @@
     "deploy:github": "node scripts/deploy-github-pages.js",
     "deploy:aws": "node scripts/deploy-aws-s3.js",
     "netlify:build": "node scripts/netlify-build-simple.js",
-    "simple-build": "node simple-build.js"
+    "simple-build": "node simple-build.js",
+    "stackbit:dev": "vite --host localhost --port 8090 --force"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.18",

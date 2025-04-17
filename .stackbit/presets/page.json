@@ -1,0 +1,14 @@
+{
+  "model": "page",
+  "presets": [
+    {
+      "label": "Standard Page",
+      "thumbnail": "https://assets.stackbit.com/components/models/thumbnails/default.png",
+      "data": {
+        "title": "New Page",
+        "layout": "page",
+        "slug": "/new-page"
+      }
+    }
+  ]
+}

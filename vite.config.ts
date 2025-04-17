@@ -1,9 +1,16 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode }) => {
+  // Load env file based on `mode` in the current directory.
+  // This ensures environment variables are available
+  loadEnv(mode, process.cwd(), '');
+
+  // Configure based on mode
+
+  return {
   plugins: [react()],
 
   resolve: {
@@ -84,5 +91,14 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: {
     // Force inclusion of these dependencies
     include: ['react', 'react-dom', 'framer-motion'],
+  },
+
+  // Reduce memory usage
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' },
+    target: 'es2020',
+    // Reduce memory usage
+    treeShaking: true,
   }
-}));
+  };
+});
